@@ -427,7 +427,7 @@ async function renderBookmarks() {
                 bookmarksList.appendChild(bookmarkElement);
             });
         }
-        
+
         console.log('Bookmarks rendered successfully');
     } catch (error) {
         console.error('Error rendering bookmarks:', error);
