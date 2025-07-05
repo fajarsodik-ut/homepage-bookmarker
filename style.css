@@ -194,14 +194,14 @@ body {
 }
 
 .logout-icon {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    transition: transform 0.3s ease;
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    transition: all 0.3s ease;
 }
 
 .logout-btn:hover .logout-icon {
-    transform: translateX(2px);
+    transform: translateX(3px) scale(1.1);
 }
 
 .logout-btn:hover {
