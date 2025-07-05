@@ -7,6 +7,68 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+      <div class="modal-content">
+        <h2>🔐 Login Required</h2>
+        <p>Please login to access your bookmarks</p>
+        
+        <form id="login-form" class="auth-form">
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required>
+          </div>
+          <button type="submit" class="auth-btn">Login</button>
+        </form>
+        
+        <div class="auth-links">
+          <p>Don't have an account? <a href="#" id="show-register">Register here</a></p>
+          <p><small>Default admin: username=<strong>admin</strong>, password=<strong>admin123</strong></small></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>📝 Create Account</h2>
+        <p>Create your personal bookmark account</p>
+        
+        <form id="register-form" class="auth-form">
+          <div class="form-group">
+            <label for="register-username">Username</label>
+            <input type="text" id="register-username" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" required>
+          </div>
+          <button type="submit" class="auth-btn">Create Account</button>
+        </form>
+        
+        <div class="auth-links">
+          <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="hidden">
+      <!-- User Info Bar -->
+      <div class="user-bar">
+        <div class="user-info">
+          <span id="current-user">👤 Welcome, User!</span>
+        </div>
+        <div class="user-actions">
+          <button id="admin-panel-btn" class="admin-btn hidden">👥 Admin Panel</button>
+          <button id="logout-btn" class="logout-btn">🚪 Logout</button>
+        </div>
+      </div>
+
     <div class="container">
       <header>
         <h1>Simple Link & Note Saver</h1>
@@ -66,7 +128,9 @@
         </section>
       </main>
     </div>
+    </div>
 
+    <script src="auth.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
