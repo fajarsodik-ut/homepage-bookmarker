@@ -302,6 +302,7 @@ async function handleFormSubmit(event) {
 
     const url = urlInput.value.trim();
     const note = noteInput.value.trim();
+    const saveBtn = event.target.querySelector('.save-btn');
 
     if (url && note) {
         // Basic URL validation
@@ -310,6 +311,11 @@ async function handleFormSubmit(event) {
             return;
         }
 
+        // Show loading state
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = 'Saving...';
+        saveBtn.disabled = true;
+
         const bookmark = {
             url: url,
             note: note,
@@ -317,14 +323,22 @@ async function handleFormSubmit(event) {
         };
 
         try {
+            console.log('Saving bookmark...', bookmark);
             const result = await auth.saveBookmark(bookmark);
 
             if (result.success) {
+                console.log('Bookmark saved successfully, clearing form...');
                 clearForm();
-                // Force a refresh of the bookmarks display
-                console.log('Bookmark saved successfully, refreshing display...');
-                await renderBookmarks();
+                
+                // Wait a moment for the database to update
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Force a complete refresh of the bookmarks display
+                console.log('Refreshing bookmark display...');
+                await loadBookmarks();
+                
                 showSaveSuccess();
+                console.log('Bookmark process completed successfully');
             } else {
                 console.error('Failed to save bookmark:', result.message);
                 alert('Failed to save bookmark: ' + result.message);
@@ -332,6 +346,10 @@ async function handleFormSubmit(event) {
         } catch (error) {
             console.error('Error saving bookmark:', error);
             alert('Error saving bookmark: ' + error.message);
+        } finally {
+            // Restore button state
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
         }
     }
 }
@@ -384,7 +402,9 @@ function clearForm() {
 
 // Load and render bookmarks on page load
 async function loadBookmarks() {
+    console.log('loadBookmarks called, calling renderBookmarks...');
     await renderBookmarks();
+    console.log('loadBookmarks completed');
 }
 
 // Render bookmarks to the DOM
