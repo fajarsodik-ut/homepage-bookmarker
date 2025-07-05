@@ -7,22 +7,46 @@ class SupabaseAuthSystem {
     }
 
     async initializeAuth() {
-        // Check if user is already logged in
-        const { data: { user } } = await this.supabase.auth.getUser();
-        if (user) {
-            this.currentUser = user;
-            await this.createOrUpdateUserProfile(user);
-        }
-
-        // Listen for auth changes
-        this.supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN') {
+        try {
+            // Check for existing session first
+            const { data: { session }, error: sessionError } = await this.supabase.auth.getSession();
+            
+            if (sessionError) {
+                console.error('Error getting session:', sessionError);
+            }
+            
+            if (session && session.user) {
+                console.log('Found existing session, user logged in:', session.user.email);
                 this.currentUser = session.user;
                 await this.createOrUpdateUserProfile(session.user);
-            } else if (event === 'SIGNED_OUT') {
-                this.currentUser = null;
+            } else {
+                console.log('No existing session found');
+                // Also check getUser as fallback
+                const { data: { user }, error: userError } = await this.supabase.auth.getUser();
+                if (user && !userError) {
+                    console.log('Found user via getUser:', user.email);
+                    this.currentUser = user;
+                    await this.createOrUpdateUserProfile(user);
+                }
             }
-        });
+
+            // Listen for auth changes
+            this.supabase.auth.onAuthStateChange(async (event, session) => {
+                console.log('Auth state changed:', event, session?.user?.email);
+                
+                if (event === 'SIGNED_IN' && session) {
+                    this.currentUser = session.user;
+                    await this.createOrUpdateUserProfile(session.user);
+                } else if (event === 'SIGNED_OUT') {
+                    this.currentUser = null;
+                } else if (event === 'TOKEN_REFRESHED' && session) {
+                    console.log('Token refreshed for user:', session.user.email);
+                    this.currentUser = session.user;
+                }
+            });
+        } catch (error) {
+            console.error('Error initializing auth:', error);
+        }
     }
 
     async createOrUpdateUserProfile(user) {

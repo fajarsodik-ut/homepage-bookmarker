@@ -31,8 +31,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 // Initialize the application
 async function initializeApp() {
-    // Wait a moment for Supabase auth to initialize
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait longer for Supabase auth to initialize and check for existing sessions
+    console.log('Initializing app, waiting for auth...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Check for email confirmation in URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -42,9 +43,13 @@ async function initializeApp() {
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
+    // Check authentication status
+    console.log('Checking if user is logged in...');
     if (auth.isLoggedIn()) {
+        console.log('User is logged in, showing main app');
         await showMainApp();
     } else {
+        console.log('User not logged in, showing login modal');
         showLoginModal();
     }
 
@@ -329,14 +334,14 @@ async function handleFormSubmit(event) {
             if (result.success) {
                 console.log('Bookmark saved successfully, clearing form...');
                 clearForm();
-                
+
                 // Wait a moment for the database to update
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 // Force a complete refresh of the bookmarks display
                 console.log('Refreshing bookmark display...');
                 await loadBookmarks();
-                
+
                 showSaveSuccess();
                 console.log('Bookmark process completed successfully');
             } else {
