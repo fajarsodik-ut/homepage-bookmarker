@@ -34,6 +34,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 async function initializeApp() {
     // Wait a moment for Supabase auth to initialize
     await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Check for email confirmation in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('type') === 'signup') {
+        showSuccess('Email confirmed! You can now login with your credentials.');
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     if (auth.isLoggedIn()) {
         await showMainApp();
@@ -325,26 +333,70 @@ function showError(inputId, message) {
 // Show success message
 function showSuccess(message) {
     const modal = document.querySelector('.modal:not(.hidden)');
-    const modalContent = modal.querySelector('.modal-content');
-
-    // Remove existing success message
-    const existingSuccess = modalContent.querySelector('.success-message');
-    if (existingSuccess) {
-        existingSuccess.remove();
-    }
-
-    // Create success message
-    const successDiv = document.createElement('div');
-    successDiv.className = 'success-message';
-    successDiv.textContent = message;
-    modalContent.appendChild(successDiv);
-
-    // Remove success message after 5 seconds
-    setTimeout(() => {
-        if (successDiv.parentNode) {
-            successDiv.remove();
+    
+    if (modal) {
+        // Show in modal if one is open
+        const modalContent = modal.querySelector('.modal-content');
+        
+        // Remove existing success message
+        const existingSuccess = modalContent.querySelector('.success-message');
+        if (existingSuccess) {
+            existingSuccess.remove();
         }
-    }, 5000);
+        
+        // Create success message
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success-message';
+        successDiv.textContent = message;
+        modalContent.appendChild(successDiv);
+        
+        // Remove success message after 5 seconds
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.remove();
+            }
+        }, 5000);
+    } else {
+        // Show as toast notification if no modal is open
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+            z-index: 1000;
+            font-weight: 600;
+            max-width: 300px;
+            animation: slideInRight 0.3s ease;
+        `;
+        toast.textContent = message;
+        
+        // Add animation keyframes
+        if (!document.querySelector('#toast-styles')) {
+            const style = document.createElement('style');
+            style.id = 'toast-styles';
+            style.textContent = `
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(toast);
+        
+        // Remove toast after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
+    }
 }
 
 // Handle logout
