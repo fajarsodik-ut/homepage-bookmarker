@@ -37,7 +37,7 @@ function initializeApp() {
     } else {
         showLoginModal();
     }
-    
+
     setupEventListeners();
 }
 
@@ -48,15 +48,15 @@ function showMainApp() {
         loginModal.classList.add('hidden');
         registerModal.classList.add('hidden');
         mainApp.classList.remove('hidden');
-        
+
         // Update user info
         currentUserSpan.textContent = `👤 Welcome, ${user.username}!`;
-        
+
         // Show admin panel button if user is admin
         if (user.isAdmin) {
             adminPanelBtn.classList.remove('hidden');
         }
-        
+
         // Load user's bookmarks
         loadBookmarks();
     }
@@ -80,25 +80,25 @@ function showRegisterModal() {
 function setupEventListeners() {
     // Bookmark form
     bookmarkForm.addEventListener('submit', handleFormSubmit);
-    
+
     // Authentication forms
     loginForm.addEventListener('submit', handleLogin);
     registerForm.addEventListener('submit', handleRegister);
-    
+
     // Modal switches
     showRegisterLink.addEventListener('click', (e) => {
         e.preventDefault();
         showRegisterModal();
     });
-    
+
     showLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
         showLoginModal();
     });
-    
+
     // Logout button
     logoutBtn.addEventListener('click', handleLogout);
-    
+
     // Admin panel button
     adminPanelBtn.addEventListener('click', showAdminPanel);
 }
@@ -107,12 +107,12 @@ function setupEventListeners() {
 function showAdminPanel() {
     const users = auth.getUsers();
     const currentUser = auth.getCurrentUser();
-    
+
     let userList = users.map(user => {
         const role = user.isAdmin ? 'Admin' : 'User';
-        const deleteBtn = user.id !== currentUser.id ? 
+        const deleteBtn = user.id !== currentUser.id ?
             `<button onclick="deleteUser('${user.id}')">Delete</button>` : '';
-        
+
         return `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
                 <div>
@@ -125,7 +125,7 @@ function showAdminPanel() {
             </div>
         `;
     }).join('');
-    
+
     const adminPanelHTML = `
         <div id="admin-panel" style="
             position: fixed;
@@ -183,7 +183,7 @@ function showAdminPanel() {
             </div>
         </div>
     `;
-    
+
     document.body.insertAdjacentHTML('beforeend', adminPanelHTML);
 }
 
@@ -199,7 +199,7 @@ function closeAdminPanel() {
 function deleteUser(userId) {
     if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
         const result = auth.deleteUser(userId);
-        
+
         if (result.success) {
             alert('User deleted successfully!');
             closeAdminPanel();
@@ -220,20 +220,20 @@ window.deleteUser = deleteUser;
 // Handle login
 function handleLogin(event) {
     event.preventDefault();
-    
+
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value.trim();
     const submitBtn = event.target.querySelector('button[type="submit"]');
-    
+
     if (username && password) {
         // Add loading state
         submitBtn.classList.add('loading');
         submitBtn.disabled = true;
-        
+
         // Simulate async operation
         setTimeout(() => {
             const result = auth.login(username, password);
-            
+
             if (result.success) {
                 showMainApp();
                 // Clear form
@@ -242,7 +242,7 @@ function handleLogin(event) {
             } else {
                 showError('login-password', result.message);
             }
-            
+
             // Remove loading state
             submitBtn.classList.remove('loading');
             submitBtn.disabled = false;
@@ -253,31 +253,31 @@ function handleLogin(event) {
 // Handle register
 function handleRegister(event) {
     event.preventDefault();
-    
+
     const username = document.getElementById('register-username').value.trim();
     const password = document.getElementById('register-password').value.trim();
     const submitBtn = event.target.querySelector('button[type="submit"]');
-    
+
     if (username && password) {
         // Basic validation
         if (username.length < 3) {
             showError('register-username', 'Username must be at least 3 characters long');
             return;
         }
-        
+
         if (password.length < 6) {
             showError('register-password', 'Password must be at least 6 characters long');
             return;
         }
-        
+
         // Add loading state
         submitBtn.classList.add('loading');
         submitBtn.disabled = true;
-        
+
         // Simulate async operation
         setTimeout(() => {
             const result = auth.createUser(username, password);
-            
+
             if (result.success) {
                 showSuccess('Account created successfully! Please login.');
                 setTimeout(() => {
@@ -289,7 +289,7 @@ function handleRegister(event) {
             } else {
                 showError('register-username', result.message);
             }
-            
+
             // Remove loading state
             submitBtn.classList.remove('loading');
             submitBtn.disabled = false;
@@ -301,21 +301,21 @@ function handleRegister(event) {
 function showError(inputId, message) {
     const input = document.getElementById(inputId);
     const existingError = input.parentNode.querySelector('.error-message');
-    
+
     // Remove existing error
     if (existingError) {
         existingError.remove();
     }
-    
+
     // Add error class
     input.classList.add('error');
-    
+
     // Create error message
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
     errorDiv.textContent = message;
     input.parentNode.appendChild(errorDiv);
-    
+
     // Remove error after 5 seconds
     setTimeout(() => {
         input.classList.remove('error');
@@ -329,19 +329,19 @@ function showError(inputId, message) {
 function showSuccess(message) {
     const modal = document.querySelector('.modal:not(.hidden)');
     const modalContent = modal.querySelector('.modal-content');
-    
+
     // Remove existing success message
     const existingSuccess = modalContent.querySelector('.success-message');
     if (existingSuccess) {
         existingSuccess.remove();
     }
-    
+
     // Create success message
     const successDiv = document.createElement('div');
     successDiv.className = 'success-message';
     successDiv.textContent = message;
     modalContent.appendChild(successDiv);
-    
+
     // Remove success message after 5 seconds
     setTimeout(() => {
         if (successDiv.parentNode) {

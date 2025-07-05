@@ -29,7 +29,7 @@ class AuthSystem {
     // Create new user
     createUser(username, password, isAdmin = false) {
         const users = this.getUsers();
-        
+
         // Check if username already exists
         if (users.find(user => user.username === username)) {
             return { success: false, message: 'Username already exists!' };
@@ -45,7 +45,7 @@ class AuthSystem {
 
         users.push(newUser);
         this.saveUsers(users);
-        
+
         return { success: true, message: 'User created successfully!' };
     }
 
@@ -58,7 +58,7 @@ class AuthSystem {
     login(username, password) {
         const users = this.getUsers();
         const user = users.find(u => u.username === username && u.password === password);
-        
+
         if (user) {
             // Store current user (without password)
             const currentUser = {
@@ -69,7 +69,7 @@ class AuthSystem {
             localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(currentUser));
             return { success: true, user: currentUser };
         }
-        
+
         return { success: false, message: 'Invalid username or password!' };
     }
 
@@ -104,7 +104,7 @@ class AuthSystem {
 
         const users = this.getUsers();
         const filteredUsers = users.filter(user => user.id !== userId);
-        
+
         if (filteredUsers.length === users.length) {
             return { success: false, message: 'User not found!' };
         }

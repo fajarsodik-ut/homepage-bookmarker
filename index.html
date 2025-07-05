@@ -12,22 +12,31 @@
       <div class="modal-content">
         <h2>🔐 Login Required</h2>
         <p>Please login to access your bookmarks</p>
-        
+
         <form id="login-form" class="auth-form">
           <div class="form-group">
             <label for="login-username">Username</label>
-            <input type="text" id="login-username" required>
+            <input type="text" id="login-username" required />
           </div>
           <div class="form-group">
             <label for="login-password">Password</label>
-            <input type="password" id="login-password" required>
+            <input type="password" id="login-password" required />
           </div>
           <button type="submit" class="auth-btn">Login</button>
         </form>
-        
+
         <div class="auth-links">
-          <p>Don't have an account? <a href="#" id="show-register">Register here</a></p>
-          <p><small>Default admin: username=<strong>admin</strong>, password=<strong>admin123</strong></small></p>
+          <p>
+            Don't have an account?
+            <a href="#" id="show-register">Register here</a>
+          </p>
+          <p>
+            <small
+              >Default admin: username=<strong>admin</strong>, password=<strong
+                >admin123</strong
+              ></small
+            >
+          </p>
         </div>
       </div>
     </div>
@@ -37,21 +46,23 @@
       <div class="modal-content">
         <h2>📝 Create Account</h2>
         <p>Create your personal bookmark account</p>
-        
+
         <form id="register-form" class="auth-form">
           <div class="form-group">
             <label for="register-username">Username</label>
-            <input type="text" id="register-username" required>
+            <input type="text" id="register-username" required />
           </div>
           <div class="form-group">
             <label for="register-password">Password</label>
-            <input type="password" id="register-password" required>
+            <input type="password" id="register-password" required />
           </div>
           <button type="submit" class="auth-btn">Create Account</button>
         </form>
-        
+
         <div class="auth-links">
-          <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+          <p>
+            Already have an account? <a href="#" id="show-login">Login here</a>
+          </p>
         </div>
       </div>
     </div>
@@ -64,70 +75,72 @@
           <span id="current-user">👤 Welcome, User!</span>
         </div>
         <div class="user-actions">
-          <button id="admin-panel-btn" class="admin-btn hidden">👥 Admin Panel</button>
+          <button id="admin-panel-btn" class="admin-btn hidden">
+            👥 Admin Panel
+          </button>
           <button id="logout-btn" class="logout-btn">🚪 Logout</button>
         </div>
       </div>
 
-    <div class="container">
-      <header>
-        <h1>Simple Link & Note Saver</h1>
-        <p>Save your favorite links with personal notes</p>
-      </header>
+      <div class="container">
+        <header>
+          <h1>Simple Link & Note Saver</h1>
+          <p>Save your favorite links with personal notes</p>
+        </header>
 
-      <main>
-        <section class="form-section">
-          <form id="bookmark-form" class="bookmark-form">
-            <div class="form-group">
-              <label for="url-input">Website URL</label>
-              <input
-                type="url"
-                id="url-input"
-                name="url"
-                placeholder="https://www.example.com"
-                required
-              />
+        <main>
+          <section class="form-section">
+            <form id="bookmark-form" class="bookmark-form">
+              <div class="form-group">
+                <label for="url-input">Website URL</label>
+                <input
+                  type="url"
+                  id="url-input"
+                  name="url"
+                  placeholder="https://www.example.com"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="note-input">Note</label>
+                <input
+                  type="text"
+                  id="note-input"
+                  name="note"
+                  placeholder="Add a short note or description..."
+                  required
+                />
+              </div>
+
+              <button type="submit" class="save-btn">Save Bookmark</button>
+            </form>
+          </section>
+
+          <section class="bookmarks-section">
+            <h2>📌 Pinned Bookmarks</h2>
+            <div id="pinned-bookmarks-list" class="bookmarks-list">
+              <!-- Pinned bookmarks will be dynamically inserted here -->
             </div>
-
-            <div class="form-group">
-              <label for="note-input">Note</label>
-              <input
-                type="text"
-                id="note-input"
-                name="note"
-                placeholder="Add a short note or description..."
-                required
-              />
+            <div id="pinned-empty-state" class="empty-state">
+              <p>
+                No pinned bookmarks yet. Pin important bookmarks from the list
+                below!
+              </p>
             </div>
+          </section>
 
-            <button type="submit" class="save-btn">Save Bookmark</button>
-          </form>
-        </section>
-
-        <section class="bookmarks-section">
-          <h2>📌 Pinned Bookmarks</h2>
-          <div id="pinned-bookmarks-list" class="bookmarks-list">
-            <!-- Pinned bookmarks will be dynamically inserted here -->
-          </div>
-          <div id="pinned-empty-state" class="empty-state">
-            <p>
-              No pinned bookmarks yet. Pin important bookmarks from the list
-              below!
-            </p>
-          </div>
-        </section>
-
-        <section class="bookmarks-section">
-          <h2>Your Bookmarks</h2>
-          <div id="bookmarks-list" class="bookmarks-list">
-            <!-- Bookmarks will be dynamically inserted here -->
-          </div>
-          <div id="empty-state" class="empty-state">
-            <p>No bookmarks saved yet. Add your first bookmark above!</p>
-          </div>
-        </section>
-      </main>
-    </div>
+          <section class="bookmarks-section">
+            <h2>Your Bookmarks</h2>
+            <div id="bookmarks-list" class="bookmarks-list">
+              <!-- Bookmarks will be dynamically inserted here -->
+            </div>
+            <div id="empty-state" class="empty-state">
+              <p>No bookmarks saved yet. Add your first bookmark above!</p>
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
 
     <script src="auth.js"></script>
