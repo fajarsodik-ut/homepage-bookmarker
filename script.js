@@ -316,40 +316,62 @@ async function handleFormSubmit(event) {
             isPinned: false
         };
 
-        const result = await auth.saveBookmark(bookmark);
+        try {
+            const result = await auth.saveBookmark(bookmark);
 
-        if (result.success) {
-            clearForm();
-            await renderBookmarks();
-            showSaveSuccess();
-        } else {
-            alert('Failed to save bookmark: ' + result.message);
+            if (result.success) {
+                clearForm();
+                // Force a refresh of the bookmarks display
+                console.log('Bookmark saved successfully, refreshing display...');
+                await renderBookmarks();
+                showSaveSuccess();
+            } else {
+                console.error('Failed to save bookmark:', result.message);
+                alert('Failed to save bookmark: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error saving bookmark:', error);
+            alert('Error saving bookmark: ' + error.message);
         }
     }
 }
 
 // Delete bookmark from Supabase
 async function deleteBookmark(bookmarkId) {
-    const result = await auth.deleteBookmark(bookmarkId);
-    if (result.success) {
-        await renderBookmarks();
-    } else {
-        alert('Failed to delete bookmark: ' + result.message);
+    try {
+        const result = await auth.deleteBookmark(bookmarkId);
+        if (result.success) {
+            console.log('Bookmark deleted successfully, refreshing display...');
+            await renderBookmarks();
+        } else {
+            console.error('Failed to delete bookmark:', result.message);
+            alert('Failed to delete bookmark: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error deleting bookmark:', error);
+        alert('Error deleting bookmark: ' + error.message);
     }
 }
 
 // Toggle pin status of bookmark
 async function togglePinBookmark(bookmarkId) {
-    const bookmarks = await auth.getBookmarks();
-    const bookmark = bookmarks.find(b => b.id === bookmarkId);
+    try {
+        const bookmarks = await auth.getBookmarks();
+        const bookmark = bookmarks.find(b => b.id === bookmarkId);
 
-    if (bookmark) {
-        const result = await auth.togglePinBookmark(bookmarkId, !bookmark.is_pinned);
-        if (result.success) {
-            await renderBookmarks();
-        } else {
-            alert('Failed to update bookmark: ' + result.message);
+        if (bookmark) {
+            const result = await auth.togglePinBookmark(bookmarkId, !bookmark.is_pinned);
+            if (result.success) {
+                console.log('Bookmark pin status updated, refreshing display...');
+                await renderBookmarks();
+            } else {
+                console.error('Failed to update bookmark:', result.message);
+                alert('Failed to update bookmark: ' + result.message);
+            }
         }
+    } catch (error) {
+        console.error('Error toggling pin:', error);
+        alert('Error toggling pin: ' + error.message);
     }
 }
 
@@ -367,40 +389,48 @@ async function loadBookmarks() {
 
 // Render bookmarks to the DOM
 async function renderBookmarks() {
-    const bookmarks = await auth.getBookmarks();
+    try {
+        console.log('Fetching bookmarks...');
+        const bookmarks = await auth.getBookmarks();
+        console.log('Fetched bookmarks:', bookmarks.length);
 
-    // Get pinned and all bookmarks
-    const pinnedBookmarks = bookmarks.filter(bookmark => bookmark.is_pinned);
-    const allBookmarks = bookmarks; // Show all bookmarks in "Your Bookmarks" section
+        // Get pinned and all bookmarks
+        const pinnedBookmarks = bookmarks.filter(bookmark => bookmark.is_pinned);
+        const allBookmarks = bookmarks; // Show all bookmarks in "Your Bookmarks" section
 
-    // Clear existing bookmarks
-    bookmarksList.innerHTML = '';
-    pinnedBookmarksList.innerHTML = '';
+        // Clear existing bookmarks
+        bookmarksList.innerHTML = '';
+        pinnedBookmarksList.innerHTML = '';
 
-    // Render pinned bookmarks
-    if (pinnedBookmarks.length === 0) {
-        pinnedEmptyState.classList.remove('hidden');
-    } else {
-        pinnedEmptyState.classList.add('hidden');
-        // Sort pinned bookmarks by timestamp (newest first)
-        pinnedBookmarks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        pinnedBookmarks.forEach((bookmark, index) => {
-            const bookmarkElement = createBookmarkElement(bookmark, index + 1, true);
-            pinnedBookmarksList.appendChild(bookmarkElement);
-        });
-    }
+        // Render pinned bookmarks
+        if (pinnedBookmarks.length === 0) {
+            pinnedEmptyState.classList.remove('hidden');
+        } else {
+            pinnedEmptyState.classList.add('hidden');
+            // Sort pinned bookmarks by timestamp (newest first)
+            pinnedBookmarks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            pinnedBookmarks.forEach((bookmark, index) => {
+                const bookmarkElement = createBookmarkElement(bookmark, index + 1, true);
+                pinnedBookmarksList.appendChild(bookmarkElement);
+            });
+        }
 
-    // Render all bookmarks in "Your Bookmarks" section
-    if (allBookmarks.length === 0) {
-        emptyState.classList.remove('hidden');
-    } else {
-        emptyState.classList.add('hidden');
-        // Sort all bookmarks by timestamp (newest first)
-        allBookmarks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        allBookmarks.forEach((bookmark, index) => {
-            const bookmarkElement = createBookmarkElement(bookmark, index + 1, false);
-            bookmarksList.appendChild(bookmarkElement);
-        });
+        // Render all bookmarks in "Your Bookmarks" section
+        if (allBookmarks.length === 0) {
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+            // Sort all bookmarks by timestamp (newest first)
+            allBookmarks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            allBookmarks.forEach((bookmark, index) => {
+                const bookmarkElement = createBookmarkElement(bookmark, index + 1, false);
+                bookmarksList.appendChild(bookmarkElement);
+            });
+        }
+        
+        console.log('Bookmarks rendered successfully');
+    } catch (error) {
+        console.error('Error rendering bookmarks:', error);
     }
 }
 
