@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Link & Note Saver</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Simple Link & Note Saver</h1>
+            <p>Save your favorite links with personal notes</p>
+        </header>
+
+        <main>
+            <section class="form-section">
+                <form id="bookmark-form" class="bookmark-form">
+                    <div class="form-group">
+                        <label for="url-input">Website URL</label>
+                        <input 
+                            type="url" 
+                            id="url-input" 
+                            name="url" 
+                            placeholder="https://www.example.com" 
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note-input">Note</label>
+                        <input 
+                            type="text" 
+                            id="note-input" 
+                            name="note" 
+                            placeholder="Add a short note or description..." 
+                            required
+                        >
+                    </div>
+                    
+                    <button type="submit" class="save-btn">Save Bookmark</button>
+                </form>
+            </section>
+
+            <section class="bookmarks-section">
+                <h2>Your Bookmarks</h2>
+                <div id="bookmarks-list" class="bookmarks-list">
+                    <!-- Bookmarks will be dynamically inserted here -->
+                </div>
+                <div id="empty-state" class="empty-state">
+                    <p>No bookmarks saved yet. Add your first bookmark above!</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
