@@ -17,7 +17,6 @@ const showRegisterLink = document.getElementById('show-register');
 const showLoginLink = document.getElementById('show-login');
 const currentUserSpan = document.getElementById('current-user');
 const logoutBtn = document.getElementById('logout-btn');
-const adminPanelBtn = document.getElementById('admin-panel-btn');
 
 // Authentication system - use Supabase instead of localStorage
 const auth = window.supabaseAuth;
@@ -34,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 async function initializeApp() {
     // Wait a moment for Supabase auth to initialize
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     // Check for email confirmation in URL
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('type') === 'signup') {
@@ -102,122 +101,14 @@ function setupEventListeners() {
     showLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
         showLoginModal();
-    });    // Logout button
+    });
+
+    // Logout button
     logoutBtn.addEventListener('click', handleLogout);
 }
 
-// Show admin panel
-function showAdminPanel() {
-    const users = auth.getUsers();
-    const currentUser = auth.getCurrentUser();
-
-    let userList = users.map(user => {
-        const role = user.isAdmin ? 'Admin' : 'User';
-        const deleteBtn = user.id !== currentUser.id ?
-            `<button onclick="deleteUser('${user.id}')">Delete</button>` : '';
-
-        return `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
-                <div>
-                    <strong>${user.username}</strong> (${role})
-                    <br><small>Created: ${new Date(user.createdAt).toLocaleDateString()}</small>
-                </div>
-                <div>
-                    ${deleteBtn}
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    const adminPanelHTML = `
-        <div id="admin-panel" style="
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1001;
-        ">
-            <div style="
-                background: white;
-                padding: 30px;
-                border-radius: 20px;
-                max-width: 500px;
-                width: 90%;
-                max-height: 80vh;
-                overflow-y: auto;
-                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-            ">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>👥 Admin Panel</h2>
-                    <button onclick="closeAdminPanel()" style="
-                        background: none;
-                        border: none;
-                        font-size: 1.5rem;
-                        cursor: pointer;
-                        color: #999;
-                    ">×</button>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h3>User Management</h3>
-                    <p>Total users: ${users.length}</p>
-                </div>
-                
-                <div style="border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
-                    ${userList}
-                </div>
-                
-                <div style="margin-top: 20px; text-align: center;">
-                    <button onclick="closeAdminPanel()" style="
-                        padding: 10px 20px;
-                        background: #667eea;
-                        color: white;
-                        border: none;
-                        border-radius: 8px;
-                        cursor: pointer;
-                    ">Close</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', adminPanelHTML);
-}
-
-// Close admin panel
-function closeAdminPanel() {
-    const adminPanel = document.getElementById('admin-panel');
-    if (adminPanel) {
-        adminPanel.remove();
-    }
-}
-
-// Delete user (for admin panel)
-function deleteUser(userId) {
-    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-        const result = auth.deleteUser(userId);
-
-        if (result.success) {
-            alert('User deleted successfully!');
-            closeAdminPanel();
-            // Refresh admin panel
-            setTimeout(() => {
-                showAdminPanel();
-            }, 100);
-        } else {
-            alert(result.message);
-        }
-    }
-}
-
 // Make functions global for onclick handlers
-window.closeAdminPanel = closeAdminPanel;
+window.deleteBookmark = deleteBookmark;
 window.deleteUser = deleteUser;
 
 // Handle login
@@ -333,23 +224,23 @@ function showError(inputId, message) {
 // Show success message
 function showSuccess(message) {
     const modal = document.querySelector('.modal:not(.hidden)');
-    
+
     if (modal) {
         // Show in modal if one is open
         const modalContent = modal.querySelector('.modal-content');
-        
+
         // Remove existing success message
         const existingSuccess = modalContent.querySelector('.success-message');
         if (existingSuccess) {
             existingSuccess.remove();
         }
-        
+
         // Create success message
         const successDiv = document.createElement('div');
         successDiv.className = 'success-message';
         successDiv.textContent = message;
         modalContent.appendChild(successDiv);
-        
+
         // Remove success message after 5 seconds
         setTimeout(() => {
             if (successDiv.parentNode) {
@@ -374,7 +265,7 @@ function showSuccess(message) {
             animation: slideInRight 0.3s ease;
         `;
         toast.textContent = message;
-        
+
         // Add animation keyframes
         if (!document.querySelector('#toast-styles')) {
             const style = document.createElement('style');
@@ -387,9 +278,9 @@ function showSuccess(message) {
             `;
             document.head.appendChild(style);
         }
-        
+
         document.body.appendChild(toast);
-        
+
         // Remove toast after 5 seconds
         setTimeout(() => {
             if (toast.parentNode) {
