@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simple Link & Note Saver</title>
     <link rel="stylesheet" href="style.css" />
+    <!-- Supabase CDN -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   </head>
   <body>
     <!-- Login Modal -->
@@ -15,8 +17,8 @@
 
         <form id="login-form" class="auth-form">
           <div class="form-group">
-            <label for="login-username">Username</label>
-            <input type="text" id="login-username" required />
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" required />
           </div>
           <div class="form-group">
             <label for="login-password">Password</label>
@@ -24,7 +26,6 @@
           </div>
           <button type="submit" class="auth-btn">Login</button>
         </form>
-
         <div class="auth-links">
           <p>
             Don't have an account?
@@ -32,9 +33,7 @@
           </p>
           <p>
             <small
-              >Default admin: username=<strong>admin</strong>, password=<strong
-                >admin123</strong
-              ></small
+              >Use your email address to create and access your account</small
             >
           </p>
         </div>
@@ -49,8 +48,8 @@
 
         <form id="register-form" class="auth-form">
           <div class="form-group">
-            <label for="register-username">Username</label>
-            <input type="text" id="register-username" required />
+            <label for="register-email">Email</label>
+            <input type="email" id="register-email" required />
           </div>
           <div class="form-group">
             <label for="register-password">Password</label>
@@ -75,9 +74,6 @@
           <span id="current-user">👤 Welcome, User!</span>
         </div>
         <div class="user-actions">
-          <button id="admin-panel-btn" class="admin-btn hidden">
-            👥 Admin Panel
-          </button>
           <button id="logout-btn" class="logout-btn">🚪 Logout</button>
         </div>
       </div>
@@ -143,6 +139,8 @@
       </div>
     </div>
 
+    <script src="supabase-config.js"></script>
+    <script src="supabase-auth.js"></script>
     <script src="auth.js"></script>
     <script src="script.js"></script>
   </body>

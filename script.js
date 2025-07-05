@@ -19,21 +19,24 @@ const currentUserSpan = document.getElementById('current-user');
 const logoutBtn = document.getElementById('logout-btn');
 const adminPanelBtn = document.getElementById('admin-panel-btn');
 
-// Authentication system
-const auth = new AuthSystem();
+// Authentication system - use Supabase instead of localStorage
+const auth = window.supabaseAuth;
 
 // Storage key for localStorage (per user)
 const STORAGE_KEY = 'simple-link-note-saver-bookmarks';
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function () {
-    initializeApp();
+document.addEventListener('DOMContentLoaded', async function () {
+    await initializeApp();
 });
 
 // Initialize the application
-function initializeApp() {
+async function initializeApp() {
+    // Wait a moment for Supabase auth to initialize
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     if (auth.isLoggedIn()) {
-        showMainApp();
+        await showMainApp();
     } else {
         showLoginModal();
     }
@@ -42,23 +45,20 @@ function initializeApp() {
 }
 
 // Show main app
-function showMainApp() {
+async function showMainApp() {
     const user = auth.getCurrentUser();
     if (user) {
         loginModal.classList.add('hidden');
         registerModal.classList.add('hidden');
         mainApp.classList.remove('hidden');
 
-        // Update user info
-        currentUserSpan.textContent = `👤 Welcome, ${user.username}!`;
-
-        // Show admin panel button if user is admin
-        if (user.isAdmin) {
-            adminPanelBtn.classList.remove('hidden');
-        }
+        // Update user info - get profile for username
+        const profile = await auth.getUserProfile();
+        const displayName = profile ? profile.username : user.email.split('@')[0];
+        currentUserSpan.textContent = `👤 Welcome, ${displayName}!`;
 
         // Load user's bookmarks
-        loadBookmarks();
+        await loadBookmarks();
     }
 }
 
@@ -94,13 +94,8 @@ function setupEventListeners() {
     showLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
         showLoginModal();
-    });
-
-    // Logout button
+    });    // Logout button
     logoutBtn.addEventListener('click', handleLogout);
-
-    // Admin panel button
-    adminPanelBtn.addEventListener('click', showAdminPanel);
 }
 
 // Show admin panel
@@ -218,50 +213,51 @@ window.closeAdminPanel = closeAdminPanel;
 window.deleteUser = deleteUser;
 
 // Handle login
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
 
-    const username = document.getElementById('login-username').value.trim();
+    const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value.trim();
     const submitBtn = event.target.querySelector('button[type="submit"]');
 
-    if (username && password) {
+    if (email && password) {
         // Add loading state
         submitBtn.classList.add('loading');
         submitBtn.disabled = true;
 
-        // Simulate async operation
-        setTimeout(() => {
-            const result = auth.login(username, password);
+        try {
+            const result = await auth.login(email, password);
 
             if (result.success) {
                 showMainApp();
                 // Clear form
-                document.getElementById('login-username').value = '';
+                document.getElementById('login-email').value = '';
                 document.getElementById('login-password').value = '';
             } else {
                 showError('login-password', result.message);
             }
+        } catch (error) {
+            showError('login-password', 'Login failed: ' + error.message);
+        }
 
-            // Remove loading state
-            submitBtn.classList.remove('loading');
-            submitBtn.disabled = false;
-        }, 500);
+        // Remove loading state
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
     }
 }
 
 // Handle register
-function handleRegister(event) {
+async function handleRegister(event) {
     event.preventDefault();
 
-    const username = document.getElementById('register-username').value.trim();
+    const email = document.getElementById('register-email').value.trim();
     const password = document.getElementById('register-password').value.trim();
     const submitBtn = event.target.querySelector('button[type="submit"]');
 
-    if (username && password) {
+    if (email && password) {
         // Basic validation
-        if (username.length < 3) {
-            showError('register-username', 'Username must be at least 3 characters long');
+        if (!email.includes('@')) {
+            showError('register-email', 'Please enter a valid email address');
             return;
         }
 
@@ -274,26 +270,27 @@ function handleRegister(event) {
         submitBtn.classList.add('loading');
         submitBtn.disabled = true;
 
-        // Simulate async operation
-        setTimeout(() => {
-            const result = auth.createUser(username, password);
+        try {
+            const result = await auth.register(email, password);
 
             if (result.success) {
-                showSuccess('Account created successfully! Please login.');
+                showSuccess('Account created successfully! Please check your email to verify your account.');
                 setTimeout(() => {
                     showLoginModal();
                     // Clear form
-                    document.getElementById('register-username').value = '';
+                    document.getElementById('register-email').value = '';
                     document.getElementById('register-password').value = '';
-                }, 1500);
+                }, 3000);
             } else {
-                showError('register-username', result.message);
+                showError('register-email', result.message);
             }
+        } catch (error) {
+            showError('register-email', 'Registration failed: ' + error.message);
+        }
 
-            // Remove loading state
-            submitBtn.classList.remove('loading');
-            submitBtn.disabled = false;
-        }, 500);
+        // Remove loading state
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
     }
 }
 
@@ -351,73 +348,65 @@ function showSuccess(message) {
 }
 
 // Handle logout
-function handleLogout() {
-    auth.logout();
+async function handleLogout() {
+    await auth.logout();
     showLoginModal();
 }
 
-// Get user-specific storage key
-function getUserStorageKey() {
-    const user = auth.getCurrentUser();
-    return user ? `${STORAGE_KEY}-${user.id}` : STORAGE_KEY;
-}
-
 // Handle form submission
-function handleFormSubmit(event) {
+async function handleFormSubmit(event) {
     event.preventDefault();
 
     const url = urlInput.value.trim();
     const note = noteInput.value.trim();
 
     if (url && note) {
+        // Basic URL validation
+        if (!isValidUrl(url)) {
+            alert('Please enter a valid URL starting with http:// or https://');
+            return;
+        }
+
         const bookmark = {
-            id: generateId(),
             url: url,
             note: note,
-            timestamp: new Date().toISOString(),
             isPinned: false
         };
 
-        saveBookmark(bookmark);
-        clearForm();
-        renderBookmarks();
+        const result = await auth.saveBookmark(bookmark);
+
+        if (result.success) {
+            clearForm();
+            await renderBookmarks();
+            showSaveSuccess();
+        } else {
+            alert('Failed to save bookmark: ' + result.message);
+        }
     }
 }
 
-// Generate unique ID
-function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
-// Save bookmark to localStorage
-function saveBookmark(bookmark) {
-    const bookmarks = getBookmarks();
-    bookmarks.push(bookmark);
-    localStorage.setItem(getUserStorageKey(), JSON.stringify(bookmarks));
-}
-
-// Get all bookmarks from localStorage
-function getBookmarks() {
-    const bookmarksData = localStorage.getItem(getUserStorageKey());
-    return bookmarksData ? JSON.parse(bookmarksData) : [];
-}
-
-// Delete bookmark from localStorage
-function deleteBookmark(bookmarkId) {
-    const bookmarks = getBookmarks();
-    const updatedBookmarks = bookmarks.filter(bookmark => bookmark.id !== bookmarkId);
-    localStorage.setItem(getUserStorageKey(), JSON.stringify(updatedBookmarks));
-    renderBookmarks();
+// Delete bookmark from Supabase
+async function deleteBookmark(bookmarkId) {
+    const result = await auth.deleteBookmark(bookmarkId);
+    if (result.success) {
+        await renderBookmarks();
+    } else {
+        alert('Failed to delete bookmark: ' + result.message);
+    }
 }
 
 // Toggle pin status of bookmark
-function togglePinBookmark(bookmarkId) {
-    const bookmarks = getBookmarks();
+async function togglePinBookmark(bookmarkId) {
+    const bookmarks = await auth.getBookmarks();
     const bookmark = bookmarks.find(b => b.id === bookmarkId);
+
     if (bookmark) {
-        bookmark.isPinned = !bookmark.isPinned;
-        localStorage.setItem(getUserStorageKey(), JSON.stringify(bookmarks));
-        renderBookmarks();
+        const result = await auth.togglePinBookmark(bookmarkId, !bookmark.is_pinned);
+        if (result.success) {
+            await renderBookmarks();
+        } else {
+            alert('Failed to update bookmark: ' + result.message);
+        }
     }
 }
 
@@ -429,16 +418,16 @@ function clearForm() {
 }
 
 // Load and render bookmarks on page load
-function loadBookmarks() {
-    renderBookmarks();
+async function loadBookmarks() {
+    await renderBookmarks();
 }
 
 // Render bookmarks to the DOM
-function renderBookmarks() {
-    const bookmarks = getBookmarks();
+async function renderBookmarks() {
+    const bookmarks = await auth.getBookmarks();
 
     // Get pinned and all bookmarks
-    const pinnedBookmarks = bookmarks.filter(bookmark => bookmark.isPinned);
+    const pinnedBookmarks = bookmarks.filter(bookmark => bookmark.is_pinned);
     const allBookmarks = bookmarks; // Show all bookmarks in "Your Bookmarks" section
 
     // Clear existing bookmarks
@@ -451,7 +440,7 @@ function renderBookmarks() {
     } else {
         pinnedEmptyState.classList.add('hidden');
         // Sort pinned bookmarks by timestamp (newest first)
-        pinnedBookmarks.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        pinnedBookmarks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         pinnedBookmarks.forEach((bookmark, index) => {
             const bookmarkElement = createBookmarkElement(bookmark, index + 1, true);
             pinnedBookmarksList.appendChild(bookmarkElement);
@@ -464,7 +453,7 @@ function renderBookmarks() {
     } else {
         emptyState.classList.add('hidden');
         // Sort all bookmarks by timestamp (newest first)
-        allBookmarks.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        allBookmarks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         allBookmarks.forEach((bookmark, index) => {
             const bookmarkElement = createBookmarkElement(bookmark, index + 1, false);
             bookmarksList.appendChild(bookmarkElement);
@@ -478,7 +467,7 @@ function createBookmarkElement(bookmark, number, isPinnedSection) {
     bookmarkDiv.className = 'bookmark-item';
     bookmarkDiv.setAttribute('data-id', bookmark.id);
 
-    if (bookmark.isPinned) {
+    if (bookmark.is_pinned) {
         bookmarkDiv.classList.add('pinned');
     }
 
@@ -504,10 +493,10 @@ function createBookmarkElement(bookmark, number, isPinnedSection) {
     actionsDiv.className = 'bookmark-actions';
 
     const pinBtn = document.createElement('button');
-    pinBtn.className = bookmark.isPinned ? 'pin-btn pinned' : 'pin-btn';
-    pinBtn.textContent = bookmark.isPinned ? 'Unpin' : 'Pin';
-    pinBtn.addEventListener('click', () => {
-        togglePinBookmark(bookmark.id);
+    pinBtn.className = bookmark.is_pinned ? 'pin-btn pinned' : 'pin-btn';
+    pinBtn.textContent = bookmark.is_pinned ? 'Unpin' : 'Pin';
+    pinBtn.addEventListener('click', async () => {
+        await togglePinBookmark(bookmark.id);
     });
 
     actionsDiv.appendChild(pinBtn);
@@ -517,9 +506,9 @@ function createBookmarkElement(bookmark, number, isPinnedSection) {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
         deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => {
+        deleteBtn.addEventListener('click', async () => {
             if (confirm('Are you sure you want to delete this bookmark?')) {
-                deleteBookmark(bookmark.id);
+                await deleteBookmark(bookmark.id);
             }
         });
         actionsDiv.appendChild(deleteBtn);
@@ -557,33 +546,4 @@ function showSaveSuccess() {
         saveBtn.textContent = originalText;
         saveBtn.style.background = '#3498db';
     }, 1500);
-}
-
-// Enhanced form submission with success feedback
-function handleFormSubmit(event) {
-    event.preventDefault();
-
-    const url = urlInput.value.trim();
-    const note = noteInput.value.trim();
-
-    if (url && note) {
-        // Basic URL validation
-        if (!isValidUrl(url)) {
-            alert('Please enter a valid URL starting with http:// or https://');
-            return;
-        }
-
-        const bookmark = {
-            id: generateId(),
-            url: url,
-            note: note,
-            timestamp: new Date().toISOString(),
-            isPinned: false
-        };
-
-        saveBookmark(bookmark);
-        clearForm();
-        renderBookmarks();
-        showSaveSuccess();
-    }
 }
